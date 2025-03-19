@@ -51,16 +51,17 @@ defmodule Crawly.DataStorage do
     GenServer.call(__MODULE__, {:inspect, spider, field})
   end
 
-  def start_link([]) do
+  def start_link(_args \\ []) do
     Logger.debug("Starting data storage")
-
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
+  @impl true
   def init(_args) do
     {:ok, %Crawly.DataStorage{workers: %{}, pid_spiders: %{}}}
   end
 
+  @impl true
   def handle_call({:store, spider, item}, _from, state) do
     %{workers: workers} = state
 
@@ -76,6 +77,7 @@ defmodule Crawly.DataStorage do
     {:reply, message, state}
   end
 
+  @impl true
   def handle_call({:start_worker, spider_name, crawl_id}, _from, state) do
     {msg, new_state} =
       case Map.get(state.workers, spider_name) do
@@ -100,6 +102,7 @@ defmodule Crawly.DataStorage do
     {:reply, msg, new_state}
   end
 
+  @impl true
   def handle_call({:stats, spider_name}, _from, state) do
     msg =
       case Map.get(state.workers, spider_name) do
@@ -113,6 +116,7 @@ defmodule Crawly.DataStorage do
     {:reply, msg, state}
   end
 
+  @impl true
   def handle_call({:inspect, spider_name, field}, _from, state) do
     msg =
       case Map.get(state.workers, spider_name) do
@@ -126,7 +130,7 @@ defmodule Crawly.DataStorage do
     {:reply, msg, state}
   end
 
-  # Clean up worker
+  @impl true
   def handle_info({:DOWN, _ref, :process, pid, _}, state) do
     spider_name = Map.get(state.pid_spiders, pid)
     new_pid_spiders = Map.delete(state.pid_spiders, pid)
