@@ -29,6 +29,8 @@ defmodule Crawly.DataStorage do
 
   defstruct workers: %{}, pid_spiders: %{}
 
+  @default_timeout 30_000  # 30 seconds default timeout
+
   def start_worker(spider_name, crawl_id) do
     GenServer.call(__MODULE__, {:start_worker, spider_name, crawl_id})
   end
@@ -39,7 +41,8 @@ defmodule Crawly.DataStorage do
   end
 
   def stats(spider) do
-    GenServer.call(__MODULE__, {:stats, spider})
+    timeout = Application.get_env(:crawly, :stats_timeout, @default_timeout)
+    GenServer.call(__MODULE__, {:stats, spider}, timeout)
   end
 
   @spec inspect(atom(), term()) ::
